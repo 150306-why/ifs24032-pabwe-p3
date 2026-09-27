@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Yuk's Wallet — Praktikum 3</title>
+<meta name="description" content="Yuk's Wallet: catatan pengeluaran harian, tautan favorit, dan kuis literasi finansial dalam satu halaman." />
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Tabler Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/dist/tabler-icons.min.css">
+
+<!-- Tailwind CSS (CDN) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          paper: '#F6F7F2',
+          ink: '#16211D',
+          brand: { 50:'#E8F5EF',100:'#CFEBDD',200:'#9ED8BC',300:'#6FC59C',400:'#3FA97C',500:'#0B6E4F',600:'#095C42',700:'#084C37',800:'#063A2A',900:'#052C20' },
+          garnet:{ 50:'#FBEAE8',100:'#F4CCC7',300:'#DE7C6E',500:'#C0463A',600:'#A83A2F',700:'#8C2F26' },
+          gold:  { 50:'#FDF3E2',100:'#FAE3B8',300:'#F0C067',500:'#E8A33D',600:'#C98325' }
+        },
+        fontFamily: {
+          display: ['Fraunces', 'ui-serif', 'serif'],
+          sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif']
+        }
+      }
+    }
+  };
+</script>
+
+<style>
+  body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+  .font-display { font-family: 'Fraunces', ui-serif, serif; }
+
+  .input { width:100%; border:1px solid #CFEBDD; border-radius:.65rem; padding:.55rem .75rem; font-size:.875rem; background:#fff; color:#16211D; outline:none; transition:border-color .15s, box-shadow .15s; }
+  .input:focus { border-color:#0B6E4F; box-shadow:0 0 0 3px rgba(11,110,79,.15); }
+
+  .btn-primary { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; background:#0B6E4F; color:#F6F7F2; font-weight:600; font-size:.875rem; padding:.6rem 1rem; border-radius:.65rem; transition:background .15s; border:none; cursor:pointer; }
+  .btn-primary:hover { background:#095C42; }
+  .btn-primary:disabled { opacity:.5; cursor:not-allowed; }
+
+  .btn-secondary { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; background:#fff; border:1px solid #CFEBDD; color:#16211D; font-weight:600; font-size:.875rem; padding:.6rem 1rem; border-radius:.65rem; transition:background .15s; cursor:pointer; }
+  .btn-secondary:hover { background:#F6F7F2; }
+
+  .btn-danger { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; background:#C0463A; color:#fff; font-weight:600; font-size:.875rem; padding:.6rem 1rem; border-radius:.65rem; transition:background .15s; border:none; cursor:pointer; }
+  .btn-danger:hover { background:#A83A2F; }
+
+  .badge { display:inline-flex; align-items:center; padding:.15rem .55rem; border-radius:999px; font-size:.72rem; font-weight:600; white-space:nowrap; }
+  .icon-btn { display:inline-flex; align-items:center; justify-content:center; height:2rem; width:2rem; border-radius:.5rem; color:rgba(22,33,29,.55); background:transparent; border:none; cursor:pointer; }
+  .icon-btn:hover { background:#F6F7F2; color:#16211D; }
+
+  .tab-btn { display:inline-flex; align-items:center; gap:.5rem; padding:.85rem 1rem; font-size:.875rem; font-weight:600; white-space:nowrap; border-bottom:2px solid transparent; color:rgba(22,33,29,.55); background:transparent; cursor:pointer; }
+  .tab-btn:hover { color:#16211D; }
+  .tab-btn.active { border-color:#0B6E4F; color:#095C42; background:rgba(11,110,79,.06); }
+
+  .no-scrollbar::-webkit-scrollbar { display:none; }
+  .no-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
+
+  .quiz-option { display:block; width:100%; text-align:left; border:1px solid #CFEBDD; border-radius:.75rem; padding:.75rem 1rem; font-size:.9rem; background:#fff; transition:border-color .15s, background .15s; cursor:pointer; }
+  .quiz-option:hover:not(:disabled) { border-color:#3FA97C; background:#E8F5EF; }
+  .quiz-option.correct { border-color:#0B6E4F; background:#E8F5EF; color:#095C42; font-weight:600; }
+  .quiz-option.wrong { border-color:#C0463A; background:#FBEAE8; color:#A83A2F; font-weight:600; }
+  .quiz-option:disabled { cursor:not-allowed; }
+
+  .modal-backdrop { background:rgba(22,33,29,.45); }
+  .panel[hidden] { display:none; }
+</style>
+</head>
+
+<body class="bg-paper text-ink antialiased">
+
+<!-- ========== HEADER ========== -->
+<header class="border-b border-brand-100 bg-paper">
+  <div class="mx-auto max-w-5xl px-4 sm:px-6 py-6 flex items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <span class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-500 text-paper">
+        <i class="ti ti-wallet text-2xl" aria-hidden="true"></i>
+      </span>
+      <div>
+        <h1 class="font-display italic text-2xl sm:text-3xl leading-none">Yuk's Wallet</h1>
+        <p class="text-sm text-ink/60 mt-1">Kelola uang, tautan, dan pengetahuanmu di satu tempat.</p>
+      </div>
+    </div>
+    <p id="today-date" class="hidden sm:block text-sm text-ink/50 font-medium tabular-nums"></p>
+  </div>
+</header>
+
+<!-- ========== TAB NAVIGATION ========== -->
+<nav class="sticky top-0 z-10 border-b border-brand-100 bg-paper/95 backdrop-blur" aria-label="Navigasi fitur">
+  <div class="mx-auto max-w-5xl px-4 sm:px-6">
+    <div class="flex gap-1 overflow-x-auto no-scrollbar" role="tablist">
+      <button type="button" class="tab-btn" data-tab="expense" role="tab" aria-selected="true" aria-controls="panel-expense" id="tab-expense">
+        <i class="ti ti-cash" aria-hidden="true"></i><span>Catatan Pengeluaran</span>
+      </button>
+      <button type="button" class="tab-btn" data-tab="bookmark" role="tab" aria-selected="false" aria-controls="panel-bookmark" id="tab-bookmark">
+        <i class="ti ti-bookmark" aria-hidden="true"></i><span>Tautan Favorit</span>
+      </button>
+      <button type="button" class="tab-btn" data-tab="quiz" role="tab" aria-selected="false" aria-controls="panel-quiz" id="tab-quiz">
+        <i class="ti ti-help-circle" aria-hidden="true"></i><span>Kuis Interaktif</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<main class="mx-auto max-w-5xl px-4 sm:px-6 py-8">
+
+  <!-- ========================================================= -->
+  <!-- PANEL 1 — EXPENSE TRACKER (Catatan Pengeluaran Harian)     -->
+  <!-- ========================================================= -->
+  <section id="panel-expense" class="panel" role="tabpanel" aria-labelledby="tab-expense">
+
+    <!-- Ringkasan -->
+    <div class="mb-6 rounded-2xl border border-brand-100 bg-white overflow-hidden">
+      <div class="grid grid-cols-3 divide-x divide-brand-100">
+        <div class="p-4 sm:p-5">
+          <p class="text-xs font-medium text-ink/50">Pemasukan</p>
+          <p id="expense-total-income" class="mt-1 font-display text-lg sm:text-2xl text-brand-600 tabular-nums">Rp0</p>
+        </div>
+        <div class="p-4 sm:p-5">
+          <p class="text-xs font-medium text-ink/50">Pengeluaran</p>
+          <p id="expense-total-outcome" class="mt-1 font-display text-lg sm:text-2xl text-garnet-600 tabular-nums">Rp0</p>
+        </div>
+        <div class="p-4 sm:p-5">
+          <p class="text-xs font-medium text-ink/50">Saldo</p>
+          <p id="expense-balance" class="mt-1 font-display text-lg sm:text-2xl tabular-nums">Rp0</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-[320px,1fr]">
+
+      <!-- Form tambah transaksi -->
+      <form id="expense-form" class="h-fit rounded-2xl border border-brand-100 bg-white p-5 space-y-4" novalidate>
+        <h2 class="font-display text-lg">Tambah Transaksi</h2>
+
+        <div>
+          <label for="expense-title" class="block text-sm font-medium text-ink/70 mb-1">Judul</label>
+          <input id="expense-title" name="title" type="text" placeholder="Mis. Makan siang" class="input" required>
+        </div>
+
+        <div>
+          <label for="expense-category" class="block text-sm font-medium text-ink/70 mb-1">Kategori</label>
+          <select id="expense-category" name="category" class="input">
+            <option>Makanan</option>
+            <option>Transportasi</option>
+            <option>Hiburan</option>
+            <option>Pendidikan</option>
+            <option>Kesehatan</option>
+            <option>Tagihan</option>
+            <option>Gaji</option>
+            <option>Lainnya</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="expense-amount" class="block text-sm font-medium text-ink/70 mb-1">Jumlah (Rp)</label>
+            <input id="expense-amount" name="amount" type="number" min="1" step="1" placeholder="0" class="input" required>
+          </div>
+          <div>
+            <label for="expense-date" class="block text-sm font-medium text-ink/70 mb-1">Tanggal</label>
+            <input id="expense-date" name="date" type="date" class="input" required>
+          </div>
+        </div>
+
+        <fieldset>
+          <legend class="block text-sm font-medium text-ink/70 mb-1">Tipe</legend>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center justify-center gap-1.5 rounded-lg border border-brand-100 py-2 text-sm font-medium cursor-pointer has-[:checked]:bg-brand-50 has-[:checked]:border-brand-400 has-[:checked]:text-brand-700">
+              <input type="radio" name="type" value="Pemasukan" class="accent-brand-500">
+              Pemasukan
+            </label>
+            <label class="flex items-center justify-center gap-1.5 rounded-lg border border-brand-100 py-2 text-sm font-medium cursor-pointer has-[:checked]:bg-garnet-50 has-[:checked]:border-garnet-300 has-[:checked]:text-garnet-700">
+              <input type="radio" name="type" value="Pengeluaran" class="accent-garnet-500" checked>
+              Pengeluaran
+            </label>
+          </div>
+        </fieldset>
+
+        <p id="expense-form-error" class="hidden text-sm text-garnet-600" role="alert"></p>
+
+        <button type="submit" class="btn-primary w-full">
+          <i class="ti ti-plus" aria-hidden="true"></i>Tambah Transaksi
+        </button>
+      </form>
+
+      <!-- Toolbar + daftar transaksi -->
+      <div class="space-y-4 min-w-0">
+        <div class="flex flex-col sm:flex-row gap-2.5">
+          <div class="relative flex-1">
+            <i class="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-ink/40" aria-hidden="true"></i>
+            <input id="expense-search" type="text" placeholder="Cari judul transaksi..." class="input pl-9">
+          </div>
+          <select id="expense-filter-type" class="input sm:w-36">
+            <option value="">Semua Tipe</option>
+            <option value="Pemasukan">Pemasukan</option>
+            <option value="Pengeluaran">Pengeluaran</option>
+          </select>
+          <select id="expense-filter-category" class="input sm:w-40">
+            <option value="">Semua Kategori</option>
+            <option>Makanan</option>
+            <option>Transportasi</option>
+            <option>Hiburan</option>
+            <option>Pendidikan</option>
+            <option>Kesehatan</option>
+            <option>Tagihan</option>
+            <option>Gaji</option>
+            <option>Lainnya</option>
+          </select>
+          <select id="expense-sort" class="input sm:w-40">
+            <option value="newest">Terbaru</option>
+            <option value="oldest">Terlama</option>
+            <option value="amount-desc">Jumlah Terbesar</option>
+            <option value="amount-asc">Jumlah Terkecil</option>
+          </select>
+        </div>
+
+        <div id="expense-list" class="rounded-2xl border border-brand-100 bg-white divide-y divide-brand-100 overflow-hidden"></div>
+        <p id="expense-empty" class="hidden text-center text-sm text-ink/50 py-12 rounded-2xl border border-dashed border-brand-200">
+          Belum ada transaksi. Tambahkan transaksi pertamamu lewat form di samping.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <!-- PANEL 2 — BOOKMARK / LINK MANAGER                          -->
+  <!-- ========================================================= -->
+  <section id="panel-bookmark" class="panel hidden" role="tabpanel" aria-labelledby="tab-bookmark">
+    <div class="grid gap-6 lg:grid-cols-[320px,1fr]">
+
+      <!-- Form tambah bookmark -->
+      <form id="bookmark-form" class="h-fit rounded-2xl border border-brand-100 bg-white p-5 space-y-4" novalidate>
+        <h2 class="font-display text-lg">Tambah Tautan</h2>
+
+        <div>
+          <label for="bookmark-title" class="block text-sm font-medium text-ink/70 mb-1">Nama / Judul</label>
+          <input id="bookmark-title" name="title" type="text" placeholder="Mis. MDN Web Docs" class="input" required>
+        </div>
+
+        <div>
+          <label for="bookmark-url" class="block text-sm font-medium text-ink/70 mb-1">URL</label>
+          <input id="bookmark-url" name="url" type="text" placeholder="https://..." class="input" required>
+          <p class="mt-1 text-xs text-ink/40">Harus diawali http:// atau https://</p>
+        </div>
+
+        <div>
+          <label for="bookmark-category" class="block text-sm font-medium text-ink/70 mb-1">Kategori / Tag</label>
+          <input id="bookmark-category" name="category" type="text" placeholder="Mis. Belajar" class="input" list="bookmark-category-options" required>
+          <datalist id="bookmark-category-options">
+            <option value="Belajar"></option>
+            <option value="Kerja"></option>
+            <option value="Hiburan"></option>
+            <option value="Berita"></option>
+            <option value="Lainnya"></option>
+          </datalist>
+        </div>
+
+        <div>
+          <label for="bookmark-note" class="block text-sm font-medium text-ink/70 mb-1">Catatan <span class="text-ink/40 font-normal">(opsional)</span></label>
+          <textarea id="bookmark-note" name="note" rows="2" placeholder="Catatan singkat..." class="input resize-none"></textarea>
+        </div>
+
+        <p id="bookmark-form-error" class="hidden text-sm text-garnet-600" role="alert"></p>
+
+        <button type="submit" class="btn-primary w-full">
+          <i class="ti ti-plus" aria-hidden="true"></i>Simpan Tautan
+        </button>
+      </form>
+
+      <!-- Toolbar + daftar bookmark -->
+      <div class="space-y-4 min-w-0">
+        <div class="flex flex-col sm:flex-row gap-2.5">
+          <div class="relative flex-1">
+            <i class="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-ink/40" aria-hidden="true"></i>
+            <input id="bookmark-search" type="text" placeholder="Cari nama, URL, atau kategori..." class="input pl-9">
+          </div>
+          <select id="bookmark-sort" class="input sm:w-44">
+            <option value="newest">Terbaru</option>
+            <option value="title-asc">Judul A–Z</option>
+            <option value="title-desc">Judul Z–A</option>
+          </select>
+        </div>
+
+        <div id="bookmark-list" class="grid gap-3 sm:grid-cols-2"></div>
+        <p id="bookmark-empty" class="hidden text-center text-sm text-ink/50 py-12 rounded-2xl border border-dashed border-brand-200">
+          Belum ada tautan tersimpan. Tambahkan tautan favoritmu lewat form di samping.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <!-- PANEL 3 — QUIZ INTERAKTIF                                  -->
+  <!-- ========================================================= -->
+  <section id="panel-quiz" class="panel hidden" role="tabpanel" aria-labelledby="tab-quiz">
+
+    <div id="quiz-start" class="rounded-2xl border border-brand-100 bg-white p-8 sm:p-10 text-center max-w-lg mx-auto">
+      <span class="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full bg-gold-50 text-gold-600">
+        <i class="ti ti-bulb text-2xl" aria-hidden="true"></i>
+      </span>
+      <h2 class="font-display text-2xl mb-2">Kuis Cerdas Finansial</h2>
+      <p class="text-sm text-ink/60 mb-1">6 pertanyaan seputar literasi keuangan &amp; keamanan digital. Jawab sebaik mungkin!</p>
+      <p class="text-sm text-ink/50 mb-6">Skor tertinggi kamu: <span id="quiz-highscore" class="font-semibold text-brand-600">0 / 6</span></p>
+      <button id="quiz-start-btn" type="button" class="btn-primary px-6">
+        <i class="ti ti-player-play" aria-hidden="true"></i>Mulai Kuis
+      </button>
+    </div>
+
+    <div id="quiz-play" class="hidden rounded-2xl border border-brand-100 bg-white p-6 sm:p-8 max-w-xl mx-auto">
+      <div class="flex items-center justify-between text-xs font-medium text-ink/50 mb-3">
+        <span id="quiz-progress-label">Soal 1 dari 6</span>
+        <span id="quiz-score-label">Skor: 0</span>
+      </div>
+      <div class="h-1.5 rounded-full bg-brand-50 overflow-hidden mb-6">
+        <div id="quiz-progress-bar" class="h-full bg-brand-500 transition-all" style="width:0%"></div>
+      </div>
+      <h3 id="quiz-question" class="font-display text-xl mb-5">Memuat soal...</h3>
+      <div id="quiz-options" class="space-y-2.5"></div>
+      <div class="mt-6 flex justify-end">
+        <button id="quiz-next-btn" type="button" class="btn-primary hidden">
+          Soal Berikutnya <i class="ti ti-arrow-right" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+
+    <div id="quiz-result" class="hidden rounded-2xl border border-brand-100 bg-white p-8 sm:p-10 text-center max-w-lg mx-auto">
+      <span id="quiz-result-icon" class="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full bg-brand-50 text-brand-600">
+        <i class="ti ti-confetti text-2xl" aria-hidden="true"></i>
+      </span>
+      <h2 class="font-display text-2xl mb-2">Kuis Selesai!</h2>
+      <p class="text-ink/70 mb-1">Skor kamu: <span id="quiz-final-score" class="font-display text-3xl text-brand-600">0 / 6</span></p>
+      <p id="quiz-result-message" class="text-sm text-ink/60 mb-6"></p>
+      <button id="quiz-restart-btn" type="button" class="btn-primary px-6">
+        <i class="ti ti-refresh" aria-hidden="true"></i>Main Lagi
+      </button>
+    </div>
+  </section>
+</main>
+
+<footer class="border-t border-brand-100 mt-10">
+  <div class="mx-auto max-w-5xl px-4 sm:px-6 py-6 text-xs text-ink/40 flex flex-col sm:flex-row items-center justify-between gap-2">
+    <p>Yuk's Wallet — Studi Kasus Praktikum 3 (PABWE), IT Del.</p>
+    <p>Dibuat oleh Wahyu Nainggolan · NIM 11S24032</p>
+  </div>
+</footer>
+
+<!-- ========================================================= -->
+<!-- MODAL: Ubah Transaksi                                      -->
+<!-- ========================================================= -->
+<div id="modal-expense-edit" class="fixed inset-0 z-50 hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="modal-expense-edit-title">
+  <div class="modal-backdrop absolute inset-0" data-close-modal="expense-edit"></div>
+  <div class="relative w-full max-w-md rounded-2xl bg-white border border-brand-100 shadow-xl p-5 sm:p-6">
+    <div class="flex items-start justify-between gap-3 mb-4">
+      <h3 id="modal-expense-edit-title" class="font-display text-lg flex items-center gap-2">
+        <i class="ti ti-pencil text-brand-600" aria-hidden="true"></i>Ubah Transaksi
+      </h3>
+      <button type="button" data-close-modal="expense-edit" class="icon-btn" aria-label="Tutup"><i class="ti ti-x text-lg" aria-hidden="true"></i></button>
+    </div>
+    <form id="expense-edit-form" class="space-y-3">
+      <input type="hidden" id="expense-edit-id">
+      <div>
+        <label for="expense-edit-title" class="block text-sm font-medium text-ink/70 mb-1">Judul</label>
+        <input id="expense-edit-title" type="text" class="input" required>
+      </div>
+      <div>
+        <label for="expense-edit-category" class="block text-sm font-medium text-ink/70 mb-1">Kategori</label>
+        <select id="expense-edit-category" class="input">
+          <option>Makanan</option><option>Transportasi</option><option>Hiburan</option>
+          <option>Pendidikan</option><option>Kesehatan</option><option>Tagihan</option>
+          <option>Gaji</option><option>Lainnya</option>
+        </select>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label for="expense-edit-amount" class="block text-sm font-medium text-ink/70 mb-1">Jumlah (Rp)</label>
+          <input id="expense-edit-amount" type="number" min="1" step="1" class="input" required>
+        </div>
+        <div>
+          <label for="expense-edit-date" class="block text-sm font-medium text-ink/70 mb-1">Tanggal</label>
+          <input id="expense-edit-date" type="date" class="input" required>
+        </div>
+      </div>
+      <fieldset>
+        <legend class="block text-sm font-medium text-ink/70 mb-1">Tipe</legend>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="flex items-center justify-center gap-1.5 rounded-lg border border-brand-100 py-2 text-sm font-medium cursor-pointer has-[:checked]:bg-brand-50 has-[:checked]:border-brand-400 has-[:checked]:text-brand-700">
+            <input type="radio" name="edit-type" value="Pemasukan" class="accent-brand-500">Pemasukan
+          </label>
+          <label class="flex items-center justify-center gap-1.5 rounded-lg border border-brand-100 py-2 text-sm font-medium cursor-pointer has-[:checked]:bg-garnet-50 has-[:checked]:border-garnet-300 has-[:checked]:text-garnet-700">
+            <input type="radio" name="edit-type" value="Pengeluaran" class="accent-garnet-500">Pengeluaran
+          </label>
+        </div>
+      </fieldset>
+      <p id="expense-edit-error" class="hidden text-sm text-garnet-600" role="alert"></p>
+      <div class="flex justify-end gap-2 pt-1">
+        <button type="button" data-close-modal="expense-edit" class="btn-secondary">Batal</button>
+        <button type="submit" class="btn-primary"><i class="ti ti-device-floppy" aria-hidden="true"></i>Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: Hapus Transaksi -->
+<div id="modal-expense-delete" class="fixed inset-0 z-50 hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="modal-expense-delete-title">
+  <div class="modal-backdrop absolute inset-0" data-close-modal="expense-delete"></div>
+  <div class="relative w-full max-w-md rounded-2xl bg-white border border-brand-100 shadow-xl p-5 sm:p-6">
+    <div class="flex items-start justify-between gap-3 mb-3">
+      <h3 id="modal-expense-delete-title" class="font-display text-lg flex items-center gap-2">
+        <i class="ti ti-trash text-garnet-600" aria-hidden="true"></i>Hapus Transaksi
+      </h3>
+      <button type="button" data-close-modal="expense-delete" class="icon-btn" aria-label="Tutup"><i class="ti ti-x text-lg" aria-hidden="true"></i></button>
+    </div>
+    <p class="text-sm text-ink/60 mb-5">Yakin ingin menghapus <strong id="expense-delete-title" class="text-ink"></strong>? Tindakan ini tidak dapat dibatalkan.</p>
+    <div class="flex justify-end gap-2">
+      <button type="button" data-close-modal="expense-delete" class="btn-secondary">Batal</button>
+      <button type="button" id="expense-delete-confirm" class="btn-danger"><i class="ti ti-trash" aria-hidden="true"></i>Hapus</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Ubah Tautan -->
+<div id="modal-bookmark-edit" class="fixed inset-0 z-50 hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="modal-bookmark-edit-title">
+  <div class="modal-backdrop absolute inset-0" data-close-modal="bookmark-edit"></div>
+  <div class="relative w-full max-w-md rounded-2xl bg-white border border-brand-100 shadow-xl p-5 sm:p-6">
+    <div class="flex items-start justify-between gap-3 mb-4">
+      <h3 id="modal-bookmark-edit-title" class="font-display text-lg flex items-center gap-2">
+        <i class="ti ti-pencil text-brand-600" aria-hidden="true"></i>Ubah Tautan
+      </h3>
+      <button type="button" data-close-modal="bookmark-edit" class="icon-btn" aria-label="Tutup"><i class="ti ti-x text-lg" aria-hidden="true"></i></button>
+    </div>
+    <form id="bookmark-edit-form" class="space-y-3">
+      <input type="hidden" id="bookmark-edit-id">
+      <div>
+        <label for="bookmark-edit-title" class="block text-sm font-medium text-ink/70 mb-1">Nama / Judul</label>
+        <input id="bookmark-edit-title" type="text" class="input" required>
+      </div>
+      <div>
+        <label for="bookmark-edit-url" class="block text-sm font-medium text-ink/70 mb-1">URL</label>
+        <input id="bookmark-edit-url" type="text" class="input" required>
+      </div>
+      <div>
+        <label for="bookmark-edit-category" class="block text-sm font-medium text-ink/70 mb-1">Kategori / Tag</label>
+        <input id="bookmark-edit-category" type="text" class="input" required>
+      </div>
+      <div>
+        <label for="bookmark-edit-note" class="block text-sm font-medium text-ink/70 mb-1">Catatan <span class="text-ink/40 font-normal">(opsional)</span></label>
+        <textarea id="bookmark-edit-note" rows="2" class="input resize-none"></textarea>
+      </div>
+      <p id="bookmark-edit-error" class="hidden text-sm text-garnet-600" role="alert"></p>
+      <div class="flex justify-end gap-2 pt-1">
+        <button type="button" data-close-modal="bookmark-edit" class="btn-secondary">Batal</button>
+        <button type="submit" class="btn-primary"><i class="ti ti-device-floppy" aria-hidden="true"></i>Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: Hapus Tautan -->
+<div id="modal-bookmark-delete" class="fixed inset-0 z-50 hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="modal-bookmark-delete-title">
+  <div class="modal-backdrop absolute inset-0" data-close-modal="bookmark-delete"></div>
+  <div class="relative w-full max-w-md rounded-2xl bg-white border border-brand-100 shadow-xl p-5 sm:p-6">
+    <div class="flex items-start justify-between gap-3 mb-3">
+      <h3 id="modal-bookmark-delete-title" class="font-display text-lg flex items-center gap-2">
+        <i class="ti ti-trash text-garnet-600" aria-hidden="true"></i>Hapus Tautan
+      </h3>
+      <button type="button" data-close-modal="bookmark-delete" class="icon-btn" aria-label="Tutup"><i class="ti ti-x text-lg" aria-hidden="true"></i></button>
+    </div>
+    <p class="text-sm text-ink/60 mb-5">Yakin ingin menghapus <strong id="bookmark-delete-title" class="text-ink"></strong>? Tindakan ini tidak dapat dibatalkan.</p>
+    <div class="flex justify-end gap-2">
+      <button type="button" data-close-modal="bookmark-delete" class="btn-secondary">Batal</button>
+      <button type="button" id="bookmark-delete-confirm" class="btn-danger"><i class="ti ti-trash" aria-hidden="true"></i>Hapus</button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/script.js"></script>
+</body>
+</html>
