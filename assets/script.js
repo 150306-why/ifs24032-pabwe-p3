@@ -66,6 +66,19 @@ function writeStorage(key, value) {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
+
+/** Buat elemen ikon SVG dari sprite di index.html (tanpa font/CDN eksternal) */
+function createIcon(name, extraClass = "") {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("class", ("icon " + extraClass).trim());
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("focusable", "false");
+  const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+  use.setAttribute("href", "#i-" + name);
+  svg.appendChild(use);
+  return svg;
+}
+
 /** Tampilkan pesan error singkat di bawah form, sembunyikan otomatis saat input berikutnya valid */
 function showFormError(el, message) {
   el.textContent = message;
@@ -246,7 +259,7 @@ function buildExpenseRow(item) {
   row.dataset.id = item.id;
 
   const dateEl = document.createElement("div");
-  dateEl.className = "w-20 shrink-0 text-xs text-ink/40 tabular-nums";
+  dateEl.className = "w-20 shrink-0 text-xs text-muted tabular-nums";
   dateEl.textContent = formatTanggal(item.date);
   row.appendChild(dateEl);
 
@@ -292,7 +305,7 @@ function buildExpenseRow(item) {
   editBtn.className = "icon-btn";
   editBtn.setAttribute("aria-label", "Ubah transaksi");
   editBtn.dataset.action = "edit";
-  editBtn.innerHTML = '<i class="ti ti-pencil" aria-hidden="true"></i>';
+  editBtn.appendChild(createIcon("pencil"));
   actions.appendChild(editBtn);
 
   const deleteBtn = document.createElement("button");
@@ -300,7 +313,7 @@ function buildExpenseRow(item) {
   deleteBtn.className = "icon-btn";
   deleteBtn.setAttribute("aria-label", "Hapus transaksi");
   deleteBtn.dataset.action = "delete";
-  deleteBtn.innerHTML = '<i class="ti ti-trash" aria-hidden="true"></i>';
+  deleteBtn.appendChild(createIcon("trash"));
   actions.appendChild(deleteBtn);
 
   row.appendChild(actions);
@@ -522,10 +535,7 @@ function buildBookmarkCard(item) {
   link.rel = "noopener noreferrer";
   link.className = "flex items-center gap-1.5 text-sm font-semibold text-ink hover:text-brand-700 min-w-0";
 
-  const linkIcon = document.createElement("i");
-  linkIcon.className = "ti ti-external-link shrink-0 text-brand-500";
-  linkIcon.setAttribute("aria-hidden", "true");
-  link.appendChild(linkIcon);
+  link.appendChild(createIcon("external-link", "shrink-0 text-brand-500"));
 
   const linkText = document.createElement("span");
   linkText.className = "truncate";
@@ -542,7 +552,7 @@ function buildBookmarkCard(item) {
   editBtn.className = "icon-btn";
   editBtn.setAttribute("aria-label", "Ubah tautan");
   editBtn.dataset.action = "edit";
-  editBtn.innerHTML = '<i class="ti ti-pencil" aria-hidden="true"></i>';
+  editBtn.appendChild(createIcon("pencil"));
   actions.appendChild(editBtn);
 
   const deleteBtn = document.createElement("button");
@@ -550,14 +560,14 @@ function buildBookmarkCard(item) {
   deleteBtn.className = "icon-btn";
   deleteBtn.setAttribute("aria-label", "Hapus tautan");
   deleteBtn.dataset.action = "delete";
-  deleteBtn.innerHTML = '<i class="ti ti-trash" aria-hidden="true"></i>';
+  deleteBtn.appendChild(createIcon("trash"));
   actions.appendChild(deleteBtn);
 
   top.appendChild(actions);
   card.appendChild(top);
 
   const urlEl = document.createElement("p");
-  urlEl.className = "text-xs text-ink/40 truncate";
+  urlEl.className = "text-xs text-muted truncate";
   urlEl.textContent = item.url;
   card.appendChild(urlEl);
 
@@ -568,7 +578,7 @@ function buildBookmarkCard(item) {
 
   if (item.note) {
     const noteEl = document.createElement("p");
-    noteEl.className = "text-xs text-ink/60 line-clamp-2";
+    noteEl.className = "text-xs text-muted line-clamp-2";
     noteEl.textContent = item.note;
     card.appendChild(noteEl);
   }

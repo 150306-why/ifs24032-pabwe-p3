@@ -23,7 +23,7 @@ browser dengan key yang terpisah per fitur, sehingga tidak ada backend/API yang 
 ## Struktur Proyek
 
 ```
-11s24032-pabwe-p3/
+ifs24032-pabwe-p3/
 ├── index.html         # markup + 3 tab (Expense, Bookmark, Quiz) + modal
 ├── assets/
 │   ├── script.js       # seluruh logika JavaScript, dikelompokkan per fitur
@@ -34,8 +34,8 @@ browser dengan key yang terpisah per fitur, sehingga tidak ada backend/API yang 
 ## Teknologi
 
 - HTML5 semantik (`header`, `nav`, `main`, `section`, `footer`)
-- Tailwind CSS (CDN) untuk styling & responsivitas
-- Google Fonts (Fraunces + Inter) dan Tabler Icons (CDN) untuk tampilan
+- Tailwind CSS (dikompilasi statis, di-inline di index.html — tanpa CDN runtime)
+- System font stack + ikon SVG inline (tanpa Google Fonts / icon font) demi performa
 - JavaScript ES6+ murni (tanpa framework) untuk seluruh logika & manipulasi DOM
 - `localStorage` untuk persistensi data (tanpa backend/API)
 
